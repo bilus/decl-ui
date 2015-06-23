@@ -1,1 +1,0 @@
-{"version":3,"file":"\/Users\/martinb\/dev\/clojure_apps\/decl-ui\/resources\/public\/js\/out\/decl_ui\/core.js","sources":["core.cljs"],"lineCount":11,"mappings":";AAAA;;AAEA;;;mBAAA,nBAAMA,8CAEHC;AAFH,AAGE,qCAAA,9BAACC,4BAAQD","names":["decl-ui.core\/foo","x","cljs.core\/println"]}
