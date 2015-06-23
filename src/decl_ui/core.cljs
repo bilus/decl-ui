@@ -29,9 +29,9 @@
 (load-ui "{:text \"Click me\" :pressed 0 :x #bind :title}"
          "[:div [:button {:on-click ui/handle-click} #bind :text]
             [:div \"Change text\"]
-            [:ui/input #bind :text]
+            [:ui/input #= :text]
             [:ui/special-div]
-            [:ui/count-click #bind :pressed]
+            [:ui/count-click #= :pressed]
             [:div #bind :pressed]
             \"Global title:\"
             [:div #bind :x]]"
