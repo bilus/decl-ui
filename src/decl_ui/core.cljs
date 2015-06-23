@@ -1,6 +1,6 @@
 (ns decl-ui.core
   (:require [reagent.core :refer [render-component atom]]
-            [decl-ui.handlers :include-macros true :as handlers]
+            [decl-ui.compile :include-macros true :as compile]
             [decl-ui.helpers]
             [cljs.reader :as reader]))
 
@@ -17,12 +17,23 @@
   (. js/document (getElementById "app")))
 
 (defn compile-ui
-  [str handler-map]
+  [str helpers callbacks]
   (->> str
        reader/read-string
-       (handlers/resolve-helpers handler-map)))
+       (compile/compile-edn helpers callbacks)))
 
-(defn load-ui [str handler-map]
-  (reset! ui-root (compile-ui str handler-map)))
+(defn load-ui [str helpers callbacks]
+  (reset! ui-root (compile-ui str helpers callbacks)))
 
-(load-ui "[:div [:button {:on-click 'handle-click} \"Click me\"] [:ui/special-div]]" (handlers/handler-map 'decl-ui.helpers :ui))
+(load-ui "[:div [:button {:on-click ui/handle-click} \"Click me\"] [:ui/special-div]]"
+         (compile/helper-map 'decl-ui.helpers :ui)
+         (compile/callback-map 'decl-ui.helpers :ui))
+
+(prn (compile-ui "[:div [:button {:on-click ui/handle-click} \"Click me\"] [:ui/special-div]]"
+          (compile/helper-map 'decl-ui.helpers :ui)
+          (compile/callback-map 'decl-ui.helpers :ui)))
+
+(prn (type (second
+        (reader/read-string "[:div ttttt]"))))
+
+(prn (get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click))

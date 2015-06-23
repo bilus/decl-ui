@@ -1,3 +1,9 @@
 (ns decl-ui.helpers)
 
-(defn special-div [el] [:div "I'm special"])
+(defn ^:helper ^:export special-div
+  [el]
+  [:div "I'm special"])
+
+(defn ^:callback ^:export handle-click
+  []
+  (js/alert "eueueu"))
