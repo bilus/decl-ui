@@ -16,33 +16,12 @@
   [hello-view]
   (. js/document (getElementById "app")))
 
-(cljs.reader/register-tag-parser! "bind" identity)
-
-(defn read-bind
-  [cells arg]
-  @(cells arg))
-
-
-(defn compile-ui
-  [cell-def ui-def helpers callbacks]
-  (compile/bind-cells
-    (reader/read-string cell-def)
-    (->> ui-def
-         reader/read-string
-         (compile/compile-edn helpers callbacks))))
-
 (defn load-ui [cells str helpers callbacks]
-  (reset! ui-root (compile-ui cells str helpers callbacks)))
+  (reset! ui-root (compile/compile-ui cells str helpers callbacks)))
 
-(load-ui "{:text \"Hello, world\"}"
+(load-ui "{:text \"Click me too!\"}"
          "[:div [:button {:on-click ui/handle-click} #bind :text] [:ui/special-div]]"
          (compile/helper-map 'decl-ui.helpers :ui)
          (compile/callback-map 'decl-ui.helpers :ui))
 
-(compile-ui "{:text \"Hello, world\"}"
-            "[:div [:button {:on-click ui/handle-click} #bind :text] [:ui/special-div]]"
-            (compile/helper-map 'decl-ui.helpers :ui)
-            (compile/callback-map 'decl-ui.helpers :ui))
-
 (get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click)
-

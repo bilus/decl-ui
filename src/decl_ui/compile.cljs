@@ -1,6 +1,10 @@
 (ns decl-ui.compile
-  (:require [clojure.walk :as walk])
-  (:require-macros [decl-ui.compile :refer [build-handler-map]]))
+  (:require [clojure.walk :as walk]
+            [cljs.reader :as reader])
+  (:require-macros [decl-ui.compile :refer [bind-cells]]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Helper/callback resolution
 
 (defn resolve-helper
   [helpers el]
@@ -47,8 +51,8 @@
       (fn [x] (compile-sub-form x context))
       edn)))
 
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Cells
 
 (defn read-bind
   [cells arg]
@@ -61,4 +65,15 @@
          (fn [[name value]]
            [name (atom value)]))
        (into {})))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Public
+
+(defn compile-ui
+  [cell-def ui-def helpers callbacks]
+  (bind-cells
+    (reader/read-string cell-def)
+    (->> ui-def
+         reader/read-string
+         (compile-edn helpers callbacks))))
 
