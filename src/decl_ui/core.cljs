@@ -16,24 +16,33 @@
   [hello-view]
   (. js/document (getElementById "app")))
 
+(cljs.reader/register-tag-parser! "bind" identity)
+
+(defn read-bind
+  [cells arg]
+  @(cells arg))
+
+
 (defn compile-ui
-  [str helpers callbacks]
-  (->> str
-       reader/read-string
-       (compile/compile-edn helpers callbacks)))
+  [cell-def ui-def helpers callbacks]
+  (compile/bind-cells
+    (reader/read-string cell-def)
+    (->> ui-def
+         reader/read-string
+         (compile/compile-edn helpers callbacks))))
 
-(defn load-ui [str helpers callbacks]
-  (reset! ui-root (compile-ui str helpers callbacks)))
+(defn load-ui [cells str helpers callbacks]
+  (reset! ui-root (compile-ui cells str helpers callbacks)))
 
-(load-ui "[:div [:button {:on-click ui/handle-click} \"Click me\"] [:ui/special-div]]"
+(load-ui "{:text \"Hello, world\"}"
+         "[:div [:button {:on-click ui/handle-click} #bind :text] [:ui/special-div]]"
          (compile/helper-map 'decl-ui.helpers :ui)
          (compile/callback-map 'decl-ui.helpers :ui))
 
-(prn (compile-ui "[:div [:button {:on-click ui/handle-click} \"Click me\"] [:ui/special-div]]"
-          (compile/helper-map 'decl-ui.helpers :ui)
-          (compile/callback-map 'decl-ui.helpers :ui)))
+(compile-ui "{:text \"Hello, world\"}"
+            "[:div [:button {:on-click ui/handle-click} #bind :text] [:ui/special-div]]"
+            (compile/helper-map 'decl-ui.helpers :ui)
+            (compile/callback-map 'decl-ui.helpers :ui))
 
-(prn (type (second
-        (reader/read-string "[:div ttttt]"))))
+(get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click)
 
-(prn (get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click))

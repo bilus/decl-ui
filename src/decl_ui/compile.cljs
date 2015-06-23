@@ -4,7 +4,6 @@
 
 (defn resolve-helper
   [helpers el]
-  (prn helpers)
   (let [tag (first el)
         handler (helpers tag)]
     (or (when handler (handler el)) el)))
@@ -44,7 +43,22 @@
 (defn compile-edn
   [helpers callbacks edn]
   (let [context (CompileContext. helpers callbacks)]
-    (prn context)
     (walk/postwalk
       (fn [x] (compile-sub-form x context))
       edn)))
+
+
+
+
+(defn read-bind
+  [cells arg]
+  @(cells arg))
+
+(defn instantiate-cells
+  [cells]
+  (->> cells
+       (map
+         (fn [[name value]]
+           [name (atom value)]))
+       (into {})))
+

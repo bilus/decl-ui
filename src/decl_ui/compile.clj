@@ -19,3 +19,10 @@
                    (map (fn [[k# _]]
                           `['~(symbol (name prefix) (name k#)) ~(symbol (name ns) (name k#))]))))))
 
+(defmacro bind-cells [cells & body]
+  `(let [cells# (decl-ui.compile/instantiate-cells ~cells)]
+    (try
+      (cljs.reader/register-tag-parser! "bind" (partial decl-ui.compile/read-bind cells#))
+      ~@body
+      (finally
+        (cljs.reader/deregister-tag-parser! "bind")))))
