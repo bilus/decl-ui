@@ -1,8 +1,10 @@
 (ns decl-ui.compile
   (:require [reagent.core :refer [atom]]
+            [reagent.ratom :refer [RAtom Reaction]]
             [clojure.walk :as walk]
             [cljs.reader :as reader])
-  (:require-macros [decl-ui.compile :refer [bind-cells]]))
+  (:require-macros [decl-ui.compile :refer [bind-cells]]
+                   [reagent.ratom :refer [reaction]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Helper/callback resolution
@@ -66,29 +68,41 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Cells
 
+(defprotocol IMakeCell
+  (make-cell [this]))
+
+(extend-protocol IMakeCell
+  RAtom
+  (make-cell [this]
+    this)
+  Reaction
+  (make-cell [this]
+    this)
+  default
+  (make-cell [this]
+    (atom this)))
+
 (defn read-bind
   [cells arg]
   (cells arg))
 
 (defn instantiate-cells
-  [cells]
-  (->> cells
+  [global-cells cell-def]
+  (->> (bind-cells
+         global-cells
+         (reader/read-string cell-def))
        (map
          (fn [[name value]]
-           [name (atom value)]))
+           [name (make-cell value)]))
        (into {})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
-
-(defn -read-string [s]
-  (reader/read-string s))
-
 (defn compile-ui
   [cells ui-def helpers callbacks]
   (bind-cells
     cells
     (->> ui-def
-         -read-string
+         reader/read-string
          (compile-edn helpers callbacks))))
 
