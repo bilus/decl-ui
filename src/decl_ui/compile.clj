@@ -6,11 +6,15 @@
 
 (defmacro bind-cells [cells & body]
   `(let [cells# ~cells]
-     (try
-       (cljs.reader/register-tag-parser! "bind" (partial decl-ui.compile/read-bind cells#))
-       ~@body
-       (finally
-         (cljs.reader/deregister-tag-parser! "bind")))))
+     (let [tag-parsers# {"bind" decl-ui.compile/read-bind
+                         "="    decl-ui.compile/read-bind}]
+       (try
+         (doseq [[tag# parser#] tag-parsers#]
+            (cljs.reader/register-tag-parser! tag# (partial parser# cells#)))
+         ~@body
+         (finally
+           (doseq [[tag# _] tag-parsers#]
+             (cljs.reader/deregister-tag-parser! tag#)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
