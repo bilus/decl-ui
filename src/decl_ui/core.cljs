@@ -17,10 +17,18 @@
   (. js/document (getElementById "app")))
 
 (defn load-ui [cells str helpers callbacks]
-  (reset! ui-root (compile/compile-ui cells str helpers callbacks)))
+  (reset! ui-root (fn []
+                    (let [cells (compile/instantiate-cells (reader/read-string cells))]
+                      (fn []
+                       (compile/compile-ui cells str helpers callbacks))))))
 
-(load-ui "{:text \"Click me too!\"}"
-         "[:div [:button {:on-click ui/handle-click} #bind :text] [:ui/special-div]]"
+(load-ui "{:text \"Click me\" :pressed 0}"
+         "[:div [:button {:on-click ui/handle-click} #bind :text]
+            [:div \"Change text\"]
+            [:ui/input #bind :text]
+            [:ui/special-div]
+            [:ui/count-click #bind :pressed]
+            [:div #bind :pressed]]"
          (compile/helper-map 'decl-ui.helpers :ui)
          (compile/callback-map 'decl-ui.helpers :ui))
 

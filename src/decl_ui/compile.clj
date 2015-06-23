@@ -5,7 +5,7 @@
 ;;; Implementation
 
 (defmacro bind-cells [cells & body]
-  `(let [cells# (decl-ui.compile/instantiate-cells ~cells)]
+  `(let [cells# ~cells]
      (try
        (cljs.reader/register-tag-parser! "bind" (partial decl-ui.compile/read-bind cells#))
        ~@body

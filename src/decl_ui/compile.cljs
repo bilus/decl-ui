@@ -1,16 +1,28 @@
 (ns decl-ui.compile
-  (:require [clojure.walk :as walk]
+  (:require [reagent.core :refer [atom]]
+            [clojure.walk :as walk]
             [cljs.reader :as reader])
   (:require-macros [decl-ui.compile :refer [bind-cells]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Helper/callback resolution
 
+(defn fallback-handler
+  [el]
+  ;el
+  (mapv
+    (fn [x]
+      (if (satisfies? IAtom x)
+        @x
+        x))
+    el))
+
 (defn resolve-helper
   [helpers el]
   (let [tag (first el)
         handler (helpers tag)]
-    (or (when handler (handler el)) el)))
+    (or (when handler (handler el)) (fallback-handler el))))
+
 
 (defn resolve-callbacks
   [callbacks attrs]
@@ -56,7 +68,7 @@
 
 (defn read-bind
   [cells arg]
-  @(cells arg))
+  (cells arg))
 
 (defn instantiate-cells
   [cells]
@@ -69,11 +81,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
 
+(defn -read-string [s]
+  (reader/read-string s))
+
 (defn compile-ui
-  [cell-def ui-def helpers callbacks]
+  [cells ui-def helpers callbacks]
   (bind-cells
-    (reader/read-string cell-def)
+    cells
     (->> ui-def
-         reader/read-string
+         -read-string
          (compile-edn helpers callbacks))))
 
