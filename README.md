@@ -27,3 +27,4 @@ your option) any later version.
 Maybe
 - parametrized cell expressions :first-user (queries/first-user #< :sort-by #< :desc) -> reaction.
 - allow binding to :ui so it can be mutated through helpers (handle-click #!= [...selector...])
+  [see](https://github.com/davidsantiago/hickory#selectors)
