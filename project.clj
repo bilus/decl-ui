@@ -17,6 +17,10 @@
 
             :figwheel     {:nrepl-port 7888}
 
+            :profiles {:test {:dependencies [[prismatic/dommy "1.1.0"]]}}
+
+            :aliases {"doo" ["with-profile" "test" "doo" "phantom" "test"]}
+
             :cljsbuild {:builds [{:id           "app"
                                   :source-paths ["src/"]
                                   :figwheel     true

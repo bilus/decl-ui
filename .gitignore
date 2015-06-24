@@ -14,3 +14,4 @@ figwheel_server.log
 *.iml
 out/
 .repl
+/resources/public/js/testable.js
