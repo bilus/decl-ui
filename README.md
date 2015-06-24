@@ -30,6 +30,7 @@ your option) any later version.
 
 - Use local cells in local cell binding.
 - Demo.
+- Publish a short article.
 - Separate callbacks and functions? Pass values to functions? Or fix first argument to callbacks.
 - get nomenclature right
 
