@@ -19,7 +19,6 @@ your option) any later version.
 
 ## TBD
 
-- #= [:user :name]
 - locals reacting to callback invocation #<
 - get nomenclature right
 - #get/#< binding for cells -> reaction.
