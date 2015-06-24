@@ -18,17 +18,17 @@
 
 (deftest test-compile-ui
   (testing "Markup generation"
-    (testing "Static markup"
+    (testing "of static markup"
       (install! {} "{:text \"Hello\"}" "[:div#text \"Hello\"]" {} {})
       (is (= "Hello" (text (sel1 "#text"))))))
-  (testing "Data binding"
-    (testing "One way cell binding"
+  (testing "Binding"
+    (testing "cells to render inside tags"
       (install! {} "{:text \"Hello\"}" "[:div#text #= :text]" {} {})
       (is (= "Hello" (text (sel1 "#text")))))
-    (testing "Nested markup"
+    (testing "cells in nested markup"
       (install! {} "{:text \"Hello\"}" "[:div [:div#text #= :text]]" {} {})
       (is (= "Hello" (text (sel1 "#text")))))
-    (testing "Two-way cell binding"
+    (testing "cells for two-way synchronization"
       (install! {} "{:text \"Hello\"}"
                 "[:div
                  [:ui/button \"btn\" #= :text]
@@ -42,18 +42,18 @@
       (async done
         (go (is (= "Bye" (text (sel1 "#result"))))
             (done))))
-    (testing "Deep binding to nested data"
+    (testing "to nested data"
       (install! {} "{:user {:name \"John Smith\"}}"
                 "[:div#user-name #= [:user :name]]"
                 {} {})
       (is (= "John Smith" (text (sel1 "#user-name")))))
-    (testing "Deep binding to unnested data"
+    (testing "to flat data using key sequence"
       (install! {} "{:text \"Hello world\"}"
                 "[:div#result #= [:text]]"
                 {} {})
       (is (= "Hello world" (text (sel1 "#result"))))))
-  (testing "Callbacks"
-    (testing "Simple invocation"
+  (testing "Callback"
+    (testing "invoked with no arguments"
       (let [clicked (atom false)]
         (install! {} "{:text \"Hello\"}"
                   "[:div
@@ -67,7 +67,7 @@
         (async done
           (go (is @clicked)
               (done)))))
-    (testing "Invocation with arguments"
+    (testing "invoked with value arguments"
       (let [received-value (atom false)]
         (install! {} "{:text \"Hello\"}"
                   "[:div
@@ -81,7 +81,7 @@
         (async done
           (go (is (= 666 @received-value))
               (done)))))
-    (testing "Invocation with binding"
+    (testing "invoked with binding"
       (let [received-value (atom false)]
         (install! {} "{:text \"Hello\"}"
                   "[:div
@@ -95,7 +95,7 @@
         (async done
           (go (is (= "Hello" @received-value))
               (done)))))
-    (testing "Invocation with deep binding"
+    (testing "invoked with deep binding"
       (install! {} "{:user {:name \"John\"} :text \"Hello world\"}"
                 "[:div
                  [:button {:id \"btn\" :on-click (ui/handle-click #= [:user :name] #= [:text])}]
@@ -118,6 +118,14 @@
                 {}
                 {'ui/query (fn [] "Hello world")})
       (is (= "Hello world" (text (sel1 "#result")))))
+    (testing "to callback binding to global cells"
+      (install! {:text "Hello world"}
+                "{:upcased-text #= (ui/upcase #= :text)}"
+                "[:div#result #= :upcased-text]"
+                {}
+                {'ui/upcase (fn [_ text]
+                              (str/upper-case text))})
+      (is (= "HELLO WORLD" (text (sel1 "#result")))))
     (testing "to callback binding to data"
       (install! {:text "Hello world"}
                 "{:upcased-text #= (ui/upcase #= :text)}"
