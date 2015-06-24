@@ -126,14 +126,14 @@
                 {'ui/upcase (fn [_ text]
                               (str/upper-case text))})
       (is (= "HELLO WORLD" (text (sel1 "#result")))))
-    (testing "to callback binding to data"
-      (install! {:text "Hello world"}
-                "{:upcased-text #= (ui/upcase #= :text)}"
-                "[:div#result #= :upcased-text]"
-                {}
-                {'ui/upcase (fn [_ text]
-                              (str/upper-case text))})
-      (is (= "HELLO WORLD" (text (sel1 "#result")))))
+    ;(testing "to callback binding to local cells"
+    ;  (install! {}
+    ;            "{:text \"Hello world\" :upcased-text #= (ui/upcase #= :text)}"
+    ;            "[:div#result #= :upcased-text]"
+    ;            {}
+    ;            {'ui/upcase (fn [_ text]
+    ;                          (str/upper-case text))})
+    ;  (is (= "HELLO WORLD" (text (sel1 "#result")))))
     (testing "to callback should automatically recalculate"
       (install! {:text (atom "Hello world")}
                 "{:text #= :text

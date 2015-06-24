@@ -3,7 +3,7 @@
             [reagent.ratom :refer [RAtom Reaction cursor]]
             [clojure.walk :as walk]
             [cljs.reader :as reader])
-  (:require-macros [decl-ui.compile :refer [bind-cells]]
+  (:require-macros [decl-ui.reader-tags :refer [with-reader-tags]]
                    [reagent.ratom :refer [reaction]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -32,8 +32,8 @@
     (symbol? form) (or (callbacks form) form)
     (seq? form) (let [[f & args] form
                       callback (callbacks f)]
-                  (assert (symbol? f) (str f " must be a symbol in " form))
-                  (assert callback (str f " must be a registered symbol in " form))
+                  (assert (symbol? f) (str "undefined " f " in " form))
+                  (assert callback (str "undefined " f " in " form))
                   (fn [ev] (apply callback ev args)))
     :else form))
 
@@ -111,11 +111,13 @@
     ;  (println "Binding" (pad (pr-str form) 30) "\t=>\t" (pr-str result)))
     result))
 
+(def tag-parsers {"bind" read-bind-tag
+                  "="    read-bind-tag})
+
 (defn instantiate-cells
   [global-cells cell-def callbacks]
-  (->> (bind-cells
-         callbacks
-         global-cells
+  (->> (with-reader-tags
+         tag-parsers [global-cells callbacks]
          (reader/read-string cell-def))
        (map
          (fn [[name value]]
@@ -126,9 +128,8 @@
 ;;; Public
 (defn compile-ui
   [cells ui-def helpers callbacks]
-  (bind-cells
-    callbacks
-    cells
+  (with-reader-tags
+    tag-parsers [cells callbacks]
     (->> ui-def
          reader/read-string
          (compile-edn helpers callbacks))))
