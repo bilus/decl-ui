@@ -2,13 +2,17 @@
 
 A Clojure library designed to ... well, that part is up to you.
 
-## Usage
+## Running app
 
-FIXME
+rlwrap lein figwheel app
+
+## Running tests
+
+lein doo phantom test
 
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 Marcin Bilski
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
