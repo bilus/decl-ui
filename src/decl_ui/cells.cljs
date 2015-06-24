@@ -1,5 +1,5 @@
 (ns decl-ui.cells
-  (:require [decl-ui.compile :refer [tag-parsers]]
+  (:require [decl-ui.reader-tags :refer [default-tag-parsers]]
             [cljs.reader :as reader]
             [reagent.core :refer [atom]]
             [reagent.ratom :refer [RAtom Reaction cursor]])
@@ -28,7 +28,7 @@
 (defn compile
   [global-cells cell-def callbacks]
   (->> (with-reader-tags
-         tag-parsers [global-cells callbacks]
+         default-tag-parsers [global-cells callbacks]
          (reader/read-string cell-def))
        (map
          (fn [[name value]]
