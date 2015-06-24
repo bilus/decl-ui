@@ -2,8 +2,8 @@
   (:require [reagent.core :refer [render-component atom]]
             [decl-ui.compile :include-macros true :as compile]
             [decl-ui.helpers]
-            [cljs.reader :as reader]
-            [clojure.string :as str]))
+            [decl-ui.cells :as cells]
+            [cljs.reader :as reader]))
 
 (declare compile-ui compile->hiccup)
 
@@ -50,13 +50,13 @@
 
 (defn compile->hiccup
   [globals cell-def ui-def helpers callbacks]
-  (let [cells (compile/instantiate-cells globals cell-def callbacks)]
+  (let [cells (cells/compile globals cell-def callbacks)]
     (compile/compile-ui cells ui-def helpers callbacks)))
 
 (defn compile-ui
   [globals cell-def ui-def helpers callbacks]
   (fn []
-    (let [cells (compile/instantiate-cells globals cell-def callbacks)]
+    (let [cells (cells/compile globals cell-def callbacks)]
       (fn []
         (compile/compile-ui cells ui-def helpers callbacks)))))
 
