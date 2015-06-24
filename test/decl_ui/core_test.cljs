@@ -40,7 +40,12 @@
       (click! (sel1 "#btn"))
       (async done
         (go (is (= "Bye" (text (sel1 "#result"))))
-            (done)))))
+            (done))))
+    (testing "Binding to nested data"
+      (install! {} "{:user {:name \"John Smith\"}}"
+                "[:div#user-name #= [:user :name]]"
+                {} {})
+      (is (= "John Smith" (text (sel1 "#user-name"))))))
   (testing "Callbacks"
     (testing "Simple invocation"
       (let [clicked (atom false)]

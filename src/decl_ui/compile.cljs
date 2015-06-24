@@ -1,6 +1,6 @@
 (ns decl-ui.compile
   (:require [reagent.core :refer [atom]]
-            [reagent.ratom :refer [RAtom Reaction]]
+            [reagent.ratom :refer [RAtom Reaction cursor]]
             [clojure.walk :as walk]
             [cljs.reader :as reader])
   (:require-macros [decl-ui.compile :refer [bind-cells]]
@@ -99,7 +99,11 @@
 
 (defn read-bind
   [cells arg]
-  (cells arg))
+  (cond
+    (keyword? arg) (cells arg)
+    (and (seq arg) (every? keyword? arg)) (if (= 1 (count arg))
+                                            (cells (first arg))
+                                            (cursor (cells (first arg)) (rest arg)))))
 
 (defn instantiate-cells
   [global-cells cell-def]

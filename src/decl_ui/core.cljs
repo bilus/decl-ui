@@ -4,7 +4,7 @@
             [decl-ui.helpers]
             [cljs.reader :as reader]))
 
-(declare compile-ui)
+(declare compile-ui compile->hiccup)
 
 (def ui-root (atom [:div "Empty"]))
 
@@ -47,9 +47,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
 
+(defn compile->hiccup
+  [globals cell-def ui-def helpers callbacks]
+  (let [cells (compile/instantiate-cells globals cell-def)]
+    (compile/compile-ui cells ui-def helpers callbacks)))
+
 (defn compile-ui
   [globals cell-def ui-def helpers callbacks]
   (fn []
     (let [cells (compile/instantiate-cells globals cell-def)]
       (fn []
         (compile/compile-ui cells ui-def helpers callbacks)))))
+
+(comment
+  (prn (compile->hiccup {} "{:user {:name \"John Smith\"}}"
+                       "[:div#user-name #= [:user :name]]"
+                       {} {})))
