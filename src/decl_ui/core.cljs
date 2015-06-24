@@ -17,16 +17,18 @@
   (. js/document (getElementById "app")))
 
 (defn load-ui [cells str helpers callbacks]
-  (let [globals {:title (atom "This is title")}]
+  (let [globals {:title (atom "This is title") :results ["result1" "result2"]}]
     (reset! ui-root (fn []
-                     (let [cells (compile/instantiate-cells globals cells)]
-                       (fn []
-                         (compile/compile-ui cells str helpers callbacks)))))))
+                      (let [cells (compile/instantiate-cells globals cells)]
+                        (fn []
+                          (compile/compile-ui cells str helpers callbacks)))))))
 
 (compile/instantiate-cells {:title (atom "This is title")}
                            "{:text \"Click me\" :pressed 0 :x #bind :title}")
 
-(load-ui "{:text \"Click me\" :pressed 0 :x #bind :title}"
+(load-ui "{:text \"Click me\"
+           :pressed 0
+           :x #bind :title}"
          "[:div [:button {:on-click ui/handle-click} #bind :text]
             [:div \"Change text\"]
             [:ui/input #= :text]
@@ -39,5 +41,4 @@
          (compile/callback-map 'decl-ui.helpers :ui))
 
 (get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click)
-
 
