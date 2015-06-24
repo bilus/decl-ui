@@ -2,7 +2,8 @@
   (:require [reagent.core :refer [render-component atom]]
             [decl-ui.compile :include-macros true :as compile]
             [decl-ui.helpers]
-            [cljs.reader :as reader]))
+            [cljs.reader :as reader]
+            [clojure.string :as str]))
 
 (declare compile-ui compile->hiccup)
 
@@ -26,10 +27,9 @@
     [hello-view]
     (. js/document (getElementById "app")))
 
-  (compile/instantiate-cells {:title (atom "This is title")}
-                             "{:text \"Click me\" :pressed 0 :x #bind :title}")
   (load-ui {:title (atom "This is title") :results (atom ["result1" "result2"])} "{:text \"Click me\"
            :pressed 0
+           :query-result #react (ui/query)
            :x #bind :title}"
            "[:div [:button#click {:on-click ui/handle-click} #bind :text]
               [:div \"Change text\"]
@@ -38,10 +38,11 @@
               [:ui/count-click #= :pressed]
               [:div #bind :pressed]
               \"Global title:\"
-              [:div #bind :x]]"
+              [:div #bind :x]
+              \"Query result:\"
+              [:div #= :query-result]]"
            (compile/helper-map 'decl-ui.helpers :ui)
            (compile/callback-map 'decl-ui.helpers :ui))
-
   (get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -49,13 +50,13 @@
 
 (defn compile->hiccup
   [globals cell-def ui-def helpers callbacks]
-  (let [cells (compile/instantiate-cells globals cell-def)]
+  (let [cells (compile/instantiate-cells globals cell-def callbacks)]
     (compile/compile-ui cells ui-def helpers callbacks)))
 
 (defn compile-ui
   [globals cell-def ui-def helpers callbacks]
   (fn []
-    (let [cells (compile/instantiate-cells globals cell-def)]
+    (let [cells (compile/instantiate-cells globals cell-def callbacks)]
       (fn []
         (compile/compile-ui cells ui-def helpers callbacks)))))
 

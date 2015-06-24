@@ -17,3 +17,6 @@
   []
   (js/alert "clicked!"))
 
+(defn ^:callback ^:export query
+  []
+  "Query result")

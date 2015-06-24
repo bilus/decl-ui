@@ -6,6 +6,15 @@ A Clojure library designed to ... well, that part is up to you.
 
 rlwrap lein figwheel app
 
+## Start REPL
+
+Start "Figwheel REPL" in Cursive and then
+
+```clojure
+(use 'figwheel-sidecar.repl-api)
+(cljs-repl)
+```
+
 ## Running tests
 
 lein doo phantom test
@@ -19,7 +28,8 @@ your option) any later version.
 
 ## TBD
 
-- locals reacting to callback invocation #<
+- Use local cells in local cell binding.
+- Separate callbacks and functions? Pass values to functions? Or fix first argument to callbacks.
 - get nomenclature right
 - #get/#< binding for cells -> reaction.
 

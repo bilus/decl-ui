@@ -1,17 +1,18 @@
 (ns decl-ui.core-test
   (:require [decl-ui.core :refer [compile-ui]]
             [dommy.core :include-macros true :refer-macros [sel1] :refer [attr text]]
-            [reagent.core :as reagent]
+            [reagent.core :refer [render-component atom]]
             [cljs.test :refer-macros [deftest is testing run-tests async]]
             [decl-ui.test-helpers :include-macros true :refer [container! click!]]
-            [cljs.core.async :refer [<! timeout]])
+            [cljs.core.async :refer [<! timeout]]
+            [clojure.string :as str])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn install!
   ([globals cells-def ui-def helpers callbacks]
    (install! "app" globals cells-def ui-def helpers callbacks))
   ([container-id globals cells-def ui-def helpers callbacks]
-   (reagent/render-component
+   (render-component
      [(compile-ui globals cells-def ui-def helpers callbacks)]
      (container! container-id))))
 
@@ -55,13 +56,13 @@
     (testing "Simple invocation"
       (let [clicked (atom false)]
         (install! {} "{:text \"Hello\"}"
-                 "[:div
-                  [:button {:id \"btn\" :on-click ui/handle-click}]
-                  [:div#result #= :text]]"
-                 {}
-                 {'ui/handle-click (fn [_]
-                                     (reset! clicked true)
-                                     nil)})                 ; Prevent warning.
+                  "[:div
+                   [:button {:id \"btn\" :on-click ui/handle-click}]
+                   [:div#result #= :text]]"
+                  {}
+                  {'ui/handle-click (fn [_]
+                                      (reset! clicked true)
+                                      nil)})                ; Prevent warning.
         (click! (sel1 "#btn"))
         (async done
           (go (is @clicked)
@@ -69,13 +70,13 @@
     (testing "Invocation with arguments"
       (let [received-value (atom false)]
         (install! {} "{:text \"Hello\"}"
-                 "[:div
-                  [:button {:id \"btn\" :on-click (ui/handle-click 666)}]
-                  [:div#result #= :text]]"
-                 {}
-                 {'ui/handle-click (fn [_ value]
-                                     (reset! received-value value)
-                                     nil)})                 ; Prevent warning.
+                  "[:div
+                   [:button {:id \"btn\" :on-click (ui/handle-click 666)}]
+                   [:div#result #= :text]]"
+                  {}
+                  {'ui/handle-click (fn [_ value]
+                                      (reset! received-value value)
+                                      nil)})                ; Prevent warning.
         (click! (sel1 "#btn"))
         (async done
           (go (is (= 666 @received-value))
@@ -83,13 +84,13 @@
     (testing "Invocation with binding"
       (let [received-value (atom false)]
         (install! {} "{:text \"Hello\"}"
-                 "[:div
-                  [:button {:id \"btn\" :on-click (ui/handle-click #= :text)}]
-                  [:div#result #= :text]]"
-                 {}
-                 {'ui/handle-click (fn [_ text]
-                                     (reset! received-value @text)
-                                     nil)})                 ; Prevent warning.
+                  "[:div
+                   [:button {:id \"btn\" :on-click (ui/handle-click #= :text)}]
+                   [:div#result #= :text]]"
+                  {}
+                  {'ui/handle-click (fn [_ text]
+                                      (reset! received-value @text)
+                                      nil)})                ; Prevent warning.
         (click! (sel1 "#btn"))
         (async done
           (go (is (= "Hello" @received-value))
@@ -109,6 +110,46 @@
       (async done
         (go (is (= "Tom" (text (sel1 "#user-name"))))
             (is (= "Bye!" (text (sel1 "#text"))))
+            (done)))))
+  (testing "Reaction"
+    (testing "to callback with no arguments"
+      (install! {} "{:text #= ui/query}"
+                "[:div#result #= :text]"
+                {}
+                {'ui/query (fn [] "Hello world")})
+      (is (= "Hello world" (text (sel1 "#result")))))
+    (testing "to callback binding to data"
+      (install! {:text "Hello world"}
+                "{:upcased-text #= (ui/upcase #= :text)}"
+                "[:div#result #= :upcased-text]"
+                {}
+                {'ui/upcase (fn [_ text]
+                              (str/upper-case text))})
+      (is (= "HELLO WORLD" (text (sel1 "#result")))))
+    (testing "to callback should not pass atoms just values"
+      (install! {:text "Hello world"}
+                "{:upcased-text #= (ui/upcase #= :text)}"
+                "[:div#result #= :upcased-text]"
+                {}
+                {'ui/upcase (fn [_ text]
+                              (is (not (satisfies? IAtom text))))}))
+    (testing "to callback should automatically recalculate"
+      (install! {:text (atom "Hello world")}
+                "{:text #= :text
+                  :upcased-text #= (ui/upcase #= :text)}"
+                "[:div
+                  [:button {:id \"btn\" :on-click (ui/change-text #= [:text])}]
+                  [:div#text #= :upcased-text]]"
+                {}
+                {'ui/upcase      (fn [_ text]
+                                   (str/upper-case @text))
+                 'ui/change-text (fn [_ text]
+                                   (prn text)
+                                   (reset! text "Bye!")
+                                   nil)})
+      (click! (sel1 "#btn"))
+      (async done
+        (go (is (= "BYE!" (text (sel1 "#text"))))
             (done))))))
 
 

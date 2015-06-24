@@ -26,7 +26,7 @@
     (or (when handler (handler el)) (fallback-handler el))))
 
 
-(defn resolve-callback*
+(defn resolve-callback
   [callbacks form]
   (cond
     (symbol? form) (or (callbacks form) form)
@@ -37,15 +37,11 @@
                   (fn [ev] (apply callback ev args)))
     :else form))
 
-(defn resolve-callback
-  [callbacks _attr-name attr-value]
-  (resolve-callback* callbacks attr-value))
-
 (defn resolve-callbacks
   [callbacks attrs]
   (->> attrs
        (map (fn [[k v]]
-              [k (resolve-callback callbacks k v)]))
+              [k (resolve-callback callbacks v)]))
        (into {})))
 
 (defrecord CompileContext [helpers callbacks])
@@ -93,23 +89,30 @@
   Reaction
   (make-cell [this]
     this)
+  Atom
+  (make-cell [this]
+    (assert (not (= Atom (type this))) "Use reagent.core/atom instead of cljs.core/atom"))
   default
   (make-cell [this]
     (atom this)))
 
-(defn read-bind
-  [cells arg]
+(defn read-bind-tag
+  [cells callbacks form]
   (let [result (cond
-                 (keyword? arg) (cells arg)
-                 (and (seq arg) (every? keyword? arg)) (if (= 1 (count arg))
-                                                         (cells (first arg))
-                                                         (cursor (cells (first arg)) (rest arg))))]
-    (assert (some? result) (str "Cannot bind to " arg))
+                 (keyword? form) (cells form)
+                 (and (vector? form) (every? keyword? form)) (if (= 1 (count form))
+                                                               (cells (first form))
+                                                               (cursor (cells (first form)) (rest form)))
+                 :else (when-let [callback (resolve-callback callbacks form)]
+                         (reaction (callback))))]
+    (assert (some? result) (str "Cannot bind to " form))
+    ;(prn "form" form "result" result)
     result))
 
 (defn instantiate-cells
-  [global-cells cell-def]
+  [global-cells cell-def callbacks]
   (->> (bind-cells
+         callbacks
          global-cells
          (reader/read-string cell-def))
        (map
@@ -122,8 +125,8 @@
 (defn compile-ui
   [cells ui-def helpers callbacks]
   (bind-cells
+    callbacks
     cells
     (->> ui-def
          reader/read-string
          (compile-edn helpers callbacks))))
-

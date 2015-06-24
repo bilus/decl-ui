@@ -4,13 +4,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Implementation
 
-(defmacro bind-cells [cells & body]
-  `(let [cells# ~cells]
-     (let [tag-parsers# {"bind" decl-ui.compile/read-bind
-                         "="    decl-ui.compile/read-bind}]
+(defmacro bind-cells [callbacks cells & body]
+  `(let [cells# ~cells
+         callbacks# ~callbacks]
+     (let [tag-parsers# {"bind"  decl-ui.compile/read-bind-tag
+                         "="     decl-ui.compile/read-bind-tag}]
        (try
          (doseq [[tag# parser#] tag-parsers#]
-            (cljs.reader/register-tag-parser! tag# (partial parser# cells#)))
+           (cljs.reader/register-tag-parser! tag# (partial parser# cells# callbacks#)))
          ~@body
          (finally
            (doseq [[tag# _] tag-parsers#]
