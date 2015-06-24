@@ -4,6 +4,8 @@
             [decl-ui.helpers]
             [cljs.reader :as reader]))
 
+(declare compile-ui)
+
 (def ui-root (atom [:div "Empty"]))
 
 (enable-console-print!)
@@ -12,33 +14,43 @@
   []
   @ui-root)
 
-(render-component
-  [hello-view]
-  (. js/document (getElementById "app")))
+(defn load-ui [cell-def ui-def helpers callbacks]
+  (reset! ui-root (compile-ui {:title (atom "This is title") :results (atom ["result1" "result2"])}
+                              cell-def
+                              ui-def
+                              helpers
+                              callbacks)))
 
-(defn load-ui [cells str helpers callbacks]
-  (let [globals {:title (atom "This is title") :results ["result1" "result2"]}]
-    (reset! ui-root (fn []
-                      (let [cells (compile/instantiate-cells globals cells)]
-                        (fn []
-                          (compile/compile-ui cells str helpers callbacks)))))))
+(defn main []
+  (render-component
+    [hello-view]
+    (. js/document (getElementById "app")))
 
-(compile/instantiate-cells {:title (atom "This is title")}
-                           "{:text \"Click me\" :pressed 0 :x #bind :title}")
+  (compile/instantiate-cells {:title (atom "This is title")}
+                             "{:text \"Click me\" :pressed 0 :x #bind :title}")
 
-(load-ui "{:text \"Click me\"
+  (load-ui "{:text \"Click me\"
            :pressed 0
            :x #bind :title}"
-         "[:div [:button {:on-click ui/handle-click} #bind :text]
-            [:div \"Change text\"]
-            [:ui/input #= :text]
-            [:ui/special-div]
-            [:ui/count-click #= :pressed]
-            [:div #bind :pressed]
-            \"Global title:\"
-            [:div #bind :x]]"
-         (compile/helper-map 'decl-ui.helpers :ui)
-         (compile/callback-map 'decl-ui.helpers :ui))
+           "[:div [:button {:on-click ui/handle-click} #bind :text]
+              [:div \"Change text\"]
+              [:ui/input #= :text]
+              [:ui/special-div]
+              [:ui/count-click #= :pressed]
+              [:div #bind :pressed]
+              \"Global title:\"
+              [:div #bind :x]]"
+           (compile/helper-map 'decl-ui.helpers :ui)
+           (compile/callback-map 'decl-ui.helpers :ui))
 
-(get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click)
+  (get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Public
+
+(defn compile-ui
+  [globals cell-def ui-def helpers callbacks]
+  (fn []
+    (let [cells (compile/instantiate-cells globals cell-def)]
+      (fn []
+        (compile/compile-ui cells ui-def helpers callbacks)))))

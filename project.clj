@@ -23,4 +23,10 @@
                                   :compiler     {:main       "decl-ui.core"
                                                  :asset-path "js/out"
                                                  :output-to  "resources/public/js/main.js"
-                                                 :output-dir "resources/public/js/out"}}]})
+                                                 :output-dir "resources/public/js/out"}}
+                                 {:id           "test"
+                                  :source-paths ["src" "test"]
+                                  ;:dependencies [lein-doo "0.1.1-SNAPSHOT"]
+                                  :compiler     {:output-to     "resources/public/js/testable.js"
+                                                 :main          "decl-ui.runner"
+                                                 :optimizations :whitespace}}]})
