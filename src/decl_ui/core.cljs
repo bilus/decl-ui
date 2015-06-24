@@ -29,7 +29,7 @@
 
   (load-ui {:title (atom "This is title") :results (atom ["result1" "result2"])} "{:text \"Click me\"
            :pressed 0
-           :query-result #react (ui/query)
+           :query-result #= (ui/query)
            :x #bind :title}"
            "[:div [:button#click {:on-click ui/handle-click} #bind :text]
               [:div \"Change text\"]
