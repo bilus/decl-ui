@@ -2,33 +2,21 @@
   (:require [decl-ui.core :refer [compile-ui]]
             [dommy.core :include-macros true :as dommy :refer-macros [sel1] :refer [attr text]]
             [reagent.core :as reagent]
-            [cljs.test :refer-macros [deftest is testing run-tests]]))
+            [cljs.test :refer-macros [deftest is testing run-tests]]
+            [decl-ui.test-helpers :include-macros true :refer [container!] :refer-macros [stringify]]))
 
-(defn new-id
-  ([]
-   (str "container-" (gensym)))
-  ([id]
-   (str "container-" id)))
+(defn install!
+  ([globals cells-def ui-def helpers callbacks]
+    (install! "app" globals cells-def ui-def helpers callbacks))
+  ([container-id globals cells-def ui-def helpers callbacks]
+   (reagent/render-component
+     [(compile-ui globals cells-def ui-def helpers callbacks)]
+     (container! container-id))))
 
-(defn new-node [id]
-  (-> (dommy/create-element "div")
-      (dommy/set-attr! "id" id)))
-
-(defn append-node [node]
-  (dommy/append! (sel1 js/document :body) node))
-
-(defn container!
-  ([]
-   (container! (new-id)))
-  ([id]
-   (-> id
-       new-node
-       append-node)
-    (sel1 (str "#" id))))
-
-(deftest test-binding
-  (testing "One way binding"
-    (reagent/render-component [:div {:id "some-test"}]
-                              (container! "test"))
-
-    (is (sel1 "#some-test"))))
+(deftest test-compile-ui
+  (testing "Static markup"
+    (install! {} "{:text \"Hello\"}" "[:div#text \"Hello\"]" {} {})
+    (is (= "Hello" (text (sel1 "#text")))))
+  (testing "One way cell binding"
+    (install! {} "{:text \"Hello\"}" "[:div#text #= :text]" {} {})
+    (is (= "Hello" (text (sel1 "#text"))))))

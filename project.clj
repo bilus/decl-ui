@@ -17,7 +17,8 @@
 
             :figwheel     {:nrepl-port 7888}
 
-            :profiles {:test {:dependencies [[prismatic/dommy "1.1.0"]]}}
+            :profiles {:test {:dependencies [[prismatic/dommy "1.1.0"]]
+                              :source-paths ["src" "test"]}}
 
             :aliases {"doo" ["with-profile" "test" "doo" "phantom" "test"]}
 
