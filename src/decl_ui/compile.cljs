@@ -106,7 +106,9 @@
                  :else (when-let [callback (resolve-callback callbacks form)]
                          (reaction (callback))))]
     (assert (some? result) (str "Cannot bind to " form))
-    ;(prn "form" form "result" result)
+    ;(let [pad (fn [s w]
+    ;            (apply str (take w (concat s (repeat " ")))))]
+    ;  (println "Binding" (pad (pr-str form) 30) "\t=>\t" (pr-str result)))
     result))
 
 (defn instantiate-cells
