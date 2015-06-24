@@ -19,11 +19,6 @@ your option) any later version.
 
 ## TBD
 
-- test binding to local in div
-
-
-
-- callbacks -- pass locals :on-click (ui/add-user #@ :user) or (ui/add-user :user)
 - #get/#< binding for cells -> reaction.
 - #< binding for markup -> same as for cells or derefing right away.
 - cell expressions :first-user queries/first-user -> reaction based on globals only
