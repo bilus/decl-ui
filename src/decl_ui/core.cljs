@@ -14,8 +14,8 @@
   []
   @ui-root)
 
-(defn load-ui [cell-def ui-def helpers callbacks]
-  (reset! ui-root (compile-ui {:title (atom "This is title") :results (atom ["result1" "result2"])}
+(defn load-ui [globals cell-def ui-def helpers callbacks]
+  (reset! ui-root (compile-ui globals
                               cell-def
                               ui-def
                               helpers
@@ -28,11 +28,10 @@
 
   (compile/instantiate-cells {:title (atom "This is title")}
                              "{:text \"Click me\" :pressed 0 :x #bind :title}")
-
-  (load-ui "{:text \"Click me\"
+  (load-ui {:title (atom "This is title") :results (atom ["result1" "result2"])} "{:text \"Click me\"
            :pressed 0
            :x #bind :title}"
-           "[:div [:button {:on-click ui/handle-click} #bind :text]
+           "[:div [:button#click {:on-click ui/handle-click} #bind :text]
               [:div \"Change text\"]
               [:ui/input #= :text]
               [:ui/special-div]
