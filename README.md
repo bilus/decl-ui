@@ -29,9 +29,9 @@ your option) any later version.
 ## TBD
 
 - Use local cells in local cell binding.
+- Demo.
 - Separate callbacks and functions? Pass values to functions? Or fix first argument to callbacks.
 - get nomenclature right
-- #get/#< binding for cells -> reaction.
 
 Maybe
 - parametrized cell expressions :first-user (queries/first-user #< :sort-by #< :desc) -> reaction.
