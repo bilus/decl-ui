@@ -24,6 +24,9 @@
     (testing "One way cell binding"
       (install! {} "{:text \"Hello\"}" "[:div#text #= :text]" {} {})
       (is (= "Hello" (text (sel1 "#text")))))
+    (testing "Nested markup"
+      (install! {} "{:text \"Hello\"}" "[:div [:div#text #= :text]]" {} {})
+      (is (= "Hello" (text (sel1 "#text")))))
     (testing "Two-way cell binding"
       (install! {} "{:text \"Hello\"}"
                 "[:div
