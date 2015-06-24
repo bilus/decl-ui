@@ -31,10 +31,10 @@
   (cond
     (symbol? form) (or (callbacks form) form)
     (seq? form) (let [[f & args] form
-                       callback (callbacks f)]
-                   (assert (symbol? f) (str f " must be a symbol in " form))
-                   (assert callback (str f " must be a registered symbol in " form))
-                   (fn [ev] (apply callback ev args)))
+                      callback (callbacks f)]
+                  (assert (symbol? f) (str f " must be a symbol in " form))
+                  (assert callback (str f " must be a registered symbol in " form))
+                  (fn [ev] (apply callback ev args)))
     :else form))
 
 (defn resolve-callback
@@ -99,11 +99,13 @@
 
 (defn read-bind
   [cells arg]
-  (cond
-    (keyword? arg) (cells arg)
-    (and (seq arg) (every? keyword? arg)) (if (= 1 (count arg))
-                                            (cells (first arg))
-                                            (cursor (cells (first arg)) (rest arg)))))
+  (let [result (cond
+                 (keyword? arg) (cells arg)
+                 (and (seq arg) (every? keyword? arg)) (if (= 1 (count arg))
+                                                         (cells (first arg))
+                                                         (cursor (cells (first arg)) (rest arg))))]
+    (assert (some? result) (str "Cannot bind to " arg))
+    result))
 
 (defn instantiate-cells
   [global-cells cell-def]

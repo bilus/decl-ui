@@ -41,7 +41,7 @@
       (async done
         (go (is (= "Bye" (text (sel1 "#result"))))
             (done))))
-    (testing "Binding to nested data"
+    (testing "Deep binding to nested data"
       (install! {} "{:user {:name \"John Smith\"}}"
                 "[:div#user-name #= [:user :name]]"
                 {} {})
@@ -88,6 +88,19 @@
         (click! (sel1 "#btn"))
         (async done
           (go (is (= "Hello" @received-value))
-              (done)))))))
+              (done)))))
+    (testing "Invocation with deep binding"
+      (install! {} "{:user {:name \"John\"}}"
+                "[:div
+                 [:button {:id \"btn\" :on-click (ui/handle-click #= [:user :name])}]
+                 [:div#user-name #= [:user :name]]]"
+                {}
+                {'ui/handle-click (fn [_ user-name]
+                                    (reset! user-name "Tom")
+                                    nil)})                  ; Prevent warning.
+      (click! (sel1 "#btn"))
+      (async done
+        (go (is (= "Tom" (text (sel1 "#user-name"))))
+            (done))))))
 
 
