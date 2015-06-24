@@ -27,7 +27,7 @@
   [node]
   (if js/window._phantom
     (let [ev (. js/document (createEvent "MouseEvent"))]
-      (.initMouseEvent ev "click" true true js/window, nil, 0, 0, 0, 0, false, false, false, false, 0, null)
+      (.initMouseEvent ev "click" true true js/window, nil, 0, 0, 0, 0, false, false, false, false, 0, nil)
       (.dispatchEvent node ev))
     (let [ev (js/MouseEvent. "click"
                              #js {"view"        js/window
