@@ -1,6 +1,6 @@
 (ns decl-ui.core-test
   (:require [decl-ui.core :refer [compile-ui]]
-            [dommy.core :include-macros true :as dommy :refer-macros [sel1] :refer [attr text]]
+            [dommy.core :include-macros true :refer-macros [sel1] :refer [attr text]]
             [reagent.core :as reagent]
             [cljs.test :refer-macros [deftest is testing run-tests async]]
             [decl-ui.test-helpers :include-macros true :refer [container! click!]]
@@ -16,25 +16,70 @@
      (container! container-id))))
 
 (deftest test-compile-ui
-  (testing "Static markup"
-    (install! {} "{:text \"Hello\"}" "[:div#text \"Hello\"]" {} {})
-    (is (= "Hello" (text (sel1 "#text")))))
-  (testing "One way cell binding"
-    (install! {} "{:text \"Hello\"}" "[:div#text #= :text]" {} {})
-    (is (= "Hello" (text (sel1 "#text")))))
-  (testing "Two-way cell binding"
-    (install! {} "{:text \"Hello\"}"
-              "[:div
-               [:ui/button \"btn\" #= :text]
-               [:div#result #= :text]]"
-              {:ui/button (fn [[_ id data]]
-                            [:button {:id       id
-                                      :on-click #(reset! data "Bye")}])}
-              {})
-    (is (sel1 "#btn"))
-    (click! (sel1 "#btn"))
-    (async done
-      (go (is (= "Bye" (text (sel1 "#result"))))
-          (done)))))
+  (testing "Markup generation"
+    (testing "Static markup"
+      (install! {} "{:text \"Hello\"}" "[:div#text \"Hello\"]" {} {})
+      (is (= "Hello" (text (sel1 "#text"))))))
+  (testing "Data binding"
+    (testing "One way cell binding"
+      (install! {} "{:text \"Hello\"}" "[:div#text #= :text]" {} {})
+      (is (= "Hello" (text (sel1 "#text")))))
+    (testing "Two-way cell binding"
+      (install! {} "{:text \"Hello\"}"
+                "[:div
+                 [:ui/button \"btn\" #= :text]
+                 [:div#result #= :text]]"
+                {:ui/button (fn [[_ id data]]
+                              [:button {:id       id
+                                        :on-click #(reset! data "Bye")}])}
+                {})
+      (is (sel1 "#btn"))
+      (click! (sel1 "#btn"))
+      (async done
+        (go (is (= "Bye" (text (sel1 "#result"))))
+            (done)))))
+  (testing "Callbacks"
+    (testing "Simple invocation"
+      (let [clicked (atom false)]
+        (install! {} "{:text \"Hello\"}"
+                 "[:div
+                  [:button {:id \"btn\" :on-click ui/handle-click}]
+                  [:div#result #= :text]]"
+                 {}
+                 {'ui/handle-click (fn [_]
+                                     (reset! clicked true)
+                                     nil)})                 ; Prevent warning.
+        (click! (sel1 "#btn"))
+        (async done
+          (go (is @clicked)
+              (done)))))
+    (testing "Invocation with arguments"
+      (let [received-value (atom false)]
+        (install! {} "{:text \"Hello\"}"
+                 "[:div
+                  [:button {:id \"btn\" :on-click (ui/handle-click 666)}]
+                  [:div#result #= :text]]"
+                 {}
+                 {'ui/handle-click (fn [_ value]
+                                     (reset! received-value value)
+                                     nil)})                 ; Prevent warning.
+        (click! (sel1 "#btn"))
+        (async done
+          (go (is (= 666 @received-value))
+              (done)))))
+    (testing "Invocation with binding"
+      (let [received-value (atom false)]
+        (install! {} "{:text \"Hello\"}"
+                 "[:div
+                  [:button {:id \"btn\" :on-click (ui/handle-click #= :text)}]
+                  [:div#result #= :text]]"
+                 {}
+                 {'ui/handle-click (fn [_ text]
+                                     (reset! received-value @text)
+                                     nil)})                 ; Prevent warning.
+        (click! (sel1 "#btn"))
+        (async done
+          (go (is (= "Hello" @received-value))
+              (done)))))))
 
 

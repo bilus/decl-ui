@@ -26,11 +26,26 @@
     (or (when handler (handler el)) (fallback-handler el))))
 
 
+(defn resolve-callback*
+  [callbacks form]
+  (cond
+    (symbol? form) (or (callbacks form) form)
+    (seq? form) (let [[f & args] form
+                       callback (callbacks f)]
+                   (assert (symbol? f) (str f " must be a symbol in " form))
+                   (assert callback (str f " must be a registered symbol in " form))
+                   (fn [ev] (apply callback ev args)))
+    :else form))
+
+(defn resolve-callback
+  [callbacks _attr-name attr-value]
+  (resolve-callback* callbacks attr-value))
+
 (defn resolve-callbacks
   [callbacks attrs]
   (->> attrs
        (map (fn [[k v]]
-              [k (or (when (symbol? v) (callbacks v)) v)]))
+              [k (resolve-callback callbacks k v)]))
        (into {})))
 
 (defrecord CompileContext [helpers callbacks])
