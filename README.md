@@ -19,9 +19,11 @@ your option) any later version.
 
 ## TBD
 
+- #= [:user :name]
+- locals reacting to callback invocation #<
+- get nomenclature right
 - #get/#< binding for cells -> reaction.
-- #< binding for markup -> same as for cells or derefing right away.
-- cell expressions :first-user queries/first-user -> reaction based on globals only
+
+Maybe
 - parametrized cell expressions :first-user (queries/first-user #< :sort-by #< :desc) -> reaction.
-- binding local -> local in epressions
-- Nested markup with #bind in inner elements.
+- allow binding to :ui so it can be mutated through helpers (handle-click #!= [...selector...])
