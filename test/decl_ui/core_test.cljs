@@ -45,7 +45,12 @@
       (install! {} "{:user {:name \"John Smith\"}}"
                 "[:div#user-name #= [:user :name]]"
                 {} {})
-      (is (= "John Smith" (text (sel1 "#user-name"))))))
+      (is (= "John Smith" (text (sel1 "#user-name")))))
+    (testing "Deep binding to unnested data"
+      (install! {} "{:text \"Hello world\"}"
+                "[:div#result #= [:text]]"
+                {} {})
+      (is (= "Hello world" (text (sel1 "#result"))))))
   (testing "Callbacks"
     (testing "Simple invocation"
       (let [clicked (atom false)]
@@ -90,17 +95,20 @@
           (go (is (= "Hello" @received-value))
               (done)))))
     (testing "Invocation with deep binding"
-      (install! {} "{:user {:name \"John\"}}"
+      (install! {} "{:user {:name \"John\"} :text \"Hello world\"}"
                 "[:div
-                 [:button {:id \"btn\" :on-click (ui/handle-click #= [:user :name])}]
-                 [:div#user-name #= [:user :name]]]"
+                 [:button {:id \"btn\" :on-click (ui/handle-click #= [:user :name] #= [:text])}]
+                 [:div#user-name #= [:user :name]]
+                 [:div#text #= [:text]]]"
                 {}
-                {'ui/handle-click (fn [_ user-name]
+                {'ui/handle-click (fn [_ user-name text]
                                     (reset! user-name "Tom")
+                                    (reset! text "Bye!")
                                     nil)})                  ; Prevent warning.
       (click! (sel1 "#btn"))
       (async done
         (go (is (= "Tom" (text (sel1 "#user-name"))))
+            (is (= "Bye!" (text (sel1 "#text"))))
             (done))))))
 
 
