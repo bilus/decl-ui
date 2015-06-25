@@ -1,5 +1,5 @@
 (ns decl-ui.reader-tags
-  (:require [decl-ui.callbacks :as callbacks]
+  (:require [decl-ui.functions :as functions]
             [decl-ui.bindings :refer [IUnresolvedBinding]]
             [reagent.ratom :refer [cursor]])
   (:require-macros [reagent.ratom :refer [reaction]]))
@@ -9,7 +9,7 @@
 
 (defn read-bind-tag
   "Bind tag literal reader. Creates a binding that can be resolved later after cells are defined."
-  [callbacks form]
+  [functions form]
   (let [result (cond
                  (keyword? form) (reify
                                    IUnresolvedBinding
@@ -27,9 +27,11 @@
                  :else (reify
                          IUnresolvedBinding
                          (-resolve [_ cells]
-                           (let [callback (callbacks/compile callbacks form)]
-                             (assert (some? callback) (str "Cannot bind to " form))
-                             (reaction ((callback cells) nil))))))]
+                           (let [make-fun (functions/compile functions form)]
+                             (assert (some? make-fun) (str "Cannot bind to " form))
+                             (let [fun (make-fun cells)]
+                               (assert (some? fun) (str "Internal error binding to " form))
+                               (reaction (fun)))))))]
     (assert (some? result) (str "Cannot bind to " form))
     result))
 

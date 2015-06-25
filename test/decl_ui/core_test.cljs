@@ -129,8 +129,8 @@
                 "{:upcased-text #= (ui/upcase #= :text)}"
                 "[:div#result #= :upcased-text]"
                 {}
-                {'ui/upcase (fn [_ text]
-                              (str/upper-case @text))}
+                {'ui/upcase (fn [text]
+                              (str/upper-case text))}
                 {})
       (is (= "HELLO WORLD" (text (sel1 "#result")))))
     (testing "to callback binding to local cells"
@@ -138,8 +138,8 @@
                 "{:text \"Hello world\" :upcased-text #= (ui/upcase #= :text)}"
                 "[:div#result #= :upcased-text]"
                 {}
-                {'ui/upcase (fn [_ text]
-                              (str/upper-case @text))}
+                {'ui/upcase (fn [text]
+                              (str/upper-case text))}
                 {})
       (is (= "HELLO WORLD" (text (sel1 "#result")))))
     (testing "to callback should automatically recalculate"
@@ -149,8 +149,8 @@
                   [:button {:id \"btn\" :on-click (ui/change-text #= [:text])}]
                   [:div#text #= :upcased-text]]"
                 {}
-                {'ui/upcase (fn [_ text]
-                              (str/upper-case @text))}
+                {'ui/upcase (fn [text]
+                              (str/upper-case text))}
                 {'ui/change-text (fn [_ text]
                                    (reset! text "Bye!")
                                    nil)})

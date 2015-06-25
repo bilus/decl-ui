@@ -14,14 +14,14 @@
   (testing "Computation on a global ratom"
     (let [cells (compile {:global (atom "whatever")}
                          "{:text #= :global :upcased #= (upper-case #= :global)}"
-                         {'upper-case (fn [_ s] (str/upper-case @s))})]
+                         {'upper-case (fn [s] (str/upper-case s))})]
       (are [binding result] (= result @(binding cells))
                             :text "whatever"
                             :upcased "WHATEVER")))
   (testing "Computation on a global ratom"
     (let [cells (compile {:global (atom "whatever")}
                          "{:text #= :global :upcased #= (upper-case #= :global)}"
-                         {'upper-case (fn [_ s] (str/upper-case @s))})]
+                         {'upper-case (fn [s] (str/upper-case s))})]
       (are [binding result] (= result @(binding cells))
                             :text "whatever"
                             :upcased "WHATEVER")))

@@ -3,6 +3,15 @@
   (:require [decl-ui.bindings :as bindings]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Implementation
+
+(defn deref-atom
+  [x]
+  (if (satisfies? IAtom x)
+    (deref x)
+    x))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
 
 (defn compile
@@ -21,5 +30,7 @@
                                   callback (functions f)]
                               (assert (symbol? f) (str "undefined " f " in " form))
                               (assert callback (str "undefined " f " in " form))
-                              #(apply callback (map (partial bindings/resolve cells) args))))))
+                              #(apply callback (map (fn [arg]
+                                                      (deref-atom (bindings/resolve cells arg)))
+                                                    args))))))
 
