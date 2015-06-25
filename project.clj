@@ -24,9 +24,9 @@
             :aliases {"doo" ["with-profile" "test" "doo" "phantom" "test"]}
 
             :cljsbuild {:builds [{:id           "app"
-                                  :source-paths ["src/"]
+                                  :source-paths ["src/" "demos/hello_world/src"]
                                   :figwheel     true
-                                  :compiler     {:main       "decl-ui.core"
+                                  :compiler     {:main       "demos.hello-world"
                                                  :asset-path "js/out"
                                                  :output-to  "resources/public/js/main.js"
                                                  :output-dir "resources/public/js/out"}}

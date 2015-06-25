@@ -1,8 +1,7 @@
 (ns demos.hello-world
   (:require [decl-ui.core :refer [load-ui]]
             [reagent.core :refer [render-component atom]]
-            [decl-ui.compile :include-macros true :as compile]
-            [decl-ui.helpers])
+            [decl-ui.compile :include-macros true :as compile])
   (:refer-clojure :exclude [count]))
 
 (def ui-root (atom (fn [] [:div "Empty"])))

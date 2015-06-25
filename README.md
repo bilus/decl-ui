@@ -53,3 +53,33 @@ Maybe
 - parametrized cell expressions :first-user (queries/first-user #< :sort-by #< :desc) -> reaction.
 - allow binding to :ui so it can be mutated through helpers (handle-click #!= [...selector...])
   [see](https://github.com/davidsantiago/hickory#selectors)
+  
+  
+  
+==== error messages
+
+(load-ui ui-root
+         {}
+         "{:text \"Hello, world\"
+           :text-length #= (count #= :text)
+           :items []
+           :item \"\"}"
+         "[:div
+            [:h1 #= :text]
+            [:div \"Type to change the title\"]
+            [:ui/input #= :text]
+            [:br]
+            [:br]
+            [:div \"Length = \" #= :text-length]
+            [:br]
+            [:br]
+            [:ui/input #= :item]
+            [:ui/ul #= :items #= :crnt]
+              [:li #= crnt]]"
+         (compile/helper-map 'demos.hello-world :ui)
+         (compile/function-map 'demos.hello-world nil)
+         (compile/callback-map 'demos.hello-world :ui))
+
+"Invalid arity: 1"
+
+===
