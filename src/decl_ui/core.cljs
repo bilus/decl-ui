@@ -4,7 +4,7 @@
             [decl-ui.helpers]
             [decl-ui.cells :as cells]))
 
-(declare compile->hiccup)
+(declare compile->hiccup compile-ui)
 
 (def ui-root (atom (fn [] [:div "Empty"])))
 
@@ -15,8 +15,7 @@
   [@ui-root])
 
 (defn load-ui [globals cell-def ui-def helpers callbacks]
-  (let [cells (cells/compile globals cell-def callbacks)]
-    (reset! ui-root (fn [] (compile/compile-ui cells ui-def helpers callbacks)))))
+  (reset! ui-root (compile-ui globals cell-def ui-def helpers callbacks)))
 
 (defn main []
   (render-component
@@ -51,6 +50,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
+
+(defn compile-ui
+  [globals cell-def ui-def helpers callbacks]
+  (let [cells (cells/compile globals cell-def callbacks)]
+    (fn [] (compile/compile-ui cells ui-def helpers callbacks))))
 
 (defn compile->hiccup
   [globals cell-def ui-def helpers callbacks]
