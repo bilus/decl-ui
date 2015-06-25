@@ -28,9 +28,9 @@ your option) any later version.
 
 ## TBD
 
+- Fix the ev first argument to callbacks.
 - Error for undefined global.
 - Error for undefined local.
-- Code review & refactoring.
 - Demo.
 
 - Publish a short article.
