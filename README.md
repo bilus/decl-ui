@@ -28,9 +28,13 @@ your option) any later version.
 
 ## TBD
 
-- Use local cells in local cell binding.
+- Error for undefined global.
+- Error for undefined local.
+- Code review & refactoring.
 - Demo.
+
 - Publish a short article.
+
 - Warn about undefined helpers (with namespace only).
 - Separate callbacks and functions? Pass values to functions? Or fix first argument to callbacks.
 - get nomenclature right

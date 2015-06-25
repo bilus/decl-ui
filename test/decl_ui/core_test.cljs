@@ -119,25 +119,24 @@
                 {'ui/query (fn [] "Hello world")})
       (is (= "Hello world" (text (sel1 "#result")))))
     (testing "to callback binding to global cells"
-      (install! {:text "Hello world"}
+      (install! {:text (atom "Hello world")}
                 "{:upcased-text #= (ui/upcase #= :text)}"
                 "[:div#result #= :upcased-text]"
                 {}
                 {'ui/upcase (fn [_ text]
-                              (str/upper-case text))})
+                              (str/upper-case @text))})
       (is (= "HELLO WORLD" (text (sel1 "#result")))))
-    ;(testing "to callback binding to local cells"
-    ;  (install! {}
-    ;            "{:text \"Hello world\" :upcased-text #= (ui/upcase #= :text)}"
-    ;            "[:div#result #= :upcased-text]"
-    ;            {}
-    ;            {'ui/upcase (fn [_ text]
-    ;                          (str/upper-case text))})
-    ;  (is (= "HELLO WORLD" (text (sel1 "#result")))))
+    (testing "to callback binding to local cells"
+      (install! {}
+                "{:text \"Hello world\" :upcased-text #= (ui/upcase #= :text)}"
+                "[:div#result #= :upcased-text]"
+                {}
+                {'ui/upcase (fn [_ text]
+                              (str/upper-case @text))})
+      (is (= "HELLO WORLD" (text (sel1 "#result")))))
     (testing "to callback should automatically recalculate"
       (install! {:text (atom "Hello world")}
-                "{:text #= :text
-                  :upcased-text #= (ui/upcase #= :text)}"
+                "{:upcased-text #= (ui/upcase #= :text)}"
                 "[:div
                   [:button {:id \"btn\" :on-click (ui/change-text #= [:text])}]
                   [:div#text #= :upcased-text]]"

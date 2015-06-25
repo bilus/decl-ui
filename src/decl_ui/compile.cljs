@@ -1,5 +1,6 @@
 (ns decl-ui.compile
   (:require [decl-ui.reader-tags :include-macros true :refer-macros [with-reader-tags] :refer [default-tag-parsers]]
+            [decl-ui.bindings :as bindings]
             [decl-ui.callbacks :as callbacks]
             [reagent.core :refer [atom]]
             [clojure.walk :as walk]
@@ -8,7 +9,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Helper/callback resolution
 
-(defn fallback-handler
+(defn fallback-helper
   [el]
   ;el
   (mapv
@@ -18,39 +19,39 @@
         x))
     el))
 
-(defn resolve-helper
-  [helpers el]
+(defn compile-tag
+  [cells helpers el]
   (let [tag (first el)
-        handler (helpers tag)]
-    (or (when handler (handler el)) (fallback-handler el))))
-
+        helper (helpers tag)
+        el' (mapv (partial bindings/resolve cells) el)]
+    (or (when helper (helper el')) (fallback-helper el'))))
 
 (defn compile-attrs
-  [callbacks attrs]
+  [cells callbacks attrs]
   (->> attrs
        (map (fn [[k v]]
-              [k (callbacks/compile callbacks v)]))
+              [k (callbacks/compile cells callbacks v)]))
        (into {})))
 
-(defrecord CompileContext [helpers callbacks])
+(defrecord CompileContext [cells helpers callbacks])
 
 (defprotocol ICompileForm
   (compile-form [this context]))
 
 (extend-type PersistentArrayMap
   ICompileForm
-  (compile-form [this {callbacks :callbacks}]
-    (compile-attrs callbacks this)))
+  (compile-form [this {callbacks :callbacks cells :cells}]
+    (compile-attrs cells callbacks this)))
 
 (extend-type PersistentHashMap
   ICompileForm
-  (compile-form [this {callbacks :callbacks}]
-    (compile-attrs callbacks this)))
+  (compile-form [this {callbacks :callbacks cells :cells}]
+    (compile-attrs cells callbacks this)))
 
 (extend-type PersistentVector
   ICompileForm
-  (compile-form [this {helpers :helpers}]
-    (resolve-helper helpers this)))
+  (compile-form [this {helpers :helpers cells :cells}]
+    (compile-tag cells helpers this)))
 
 (extend-type default
   ICompileForm
@@ -58,8 +59,8 @@
     this))
 
 (defn compile-edn
-  [helpers callbacks edn]
-  (let [context (CompileContext. helpers callbacks)]
+  [cells helpers callbacks edn]
+  (let [context (CompileContext. cells helpers callbacks)]
     (walk/postwalk
       (fn [x] (compile-form x context))
       edn)))
@@ -71,7 +72,7 @@
 (defn compile-ui
   [cells ui-def helpers callbacks]
   (with-reader-tags
-    default-tag-parsers [cells callbacks]
+    default-tag-parsers [callbacks]
     (->> ui-def
          reader/read-string
-         (compile-edn helpers callbacks))))
+         (compile-edn cells helpers callbacks))))

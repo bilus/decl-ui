@@ -1,10 +1,12 @@
 (ns decl-ui.cells
   (:require [decl-ui.reader-tags :refer [default-tag-parsers]]
+            [decl-ui.callbacks :as callbacks]
+            [decl-ui.bindings :as bindings]
             [cljs.reader :as reader]
             [reagent.core :refer [atom]]
             [reagent.ratom :refer [RAtom Reaction cursor]]
-            [decl-ui.callbacks :as callbacks]
-            [com.stuartsierra.dependency :as dependency])
+            [com.stuartsierra.dependency :as dependency]
+            [clojure.string :as str])
   (:require-macros [decl-ui.reader-tags :refer [with-reader-tags]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,19 +35,25 @@
 (defprotocol IDependency
   (dependencies [_]))
 
+(extend-type default
+  IDependency
+  (dependencies [_]
+    ; Dependencies on cells are generated while reading bind tag literals. Regular forms
+    ; (e.g. strings) have no dependencies on cells.
+    []))
+
 (defn gen-deps
   [& args]
-  (prn "args" args)
   (->> args
        (filter #(satisfies? IDependency %))
        (map dependencies)))
 
 (defn read-bind-tag                                         ;; TODO: Logic duplicated in decl-ui.compile
-  [_cells callbacks form]
+  [cells callbacks form]
   (let [dependencies (cond
                        (keyword? form) [form]
                        (and (vector? form) (every? keyword? form)) [(first form)]
-                       :else (when-let [callback (callbacks/compile callbacks form)]
+                       :else (when-let [callback (callbacks/compile cells callbacks form)]
                                (callback)))]
     (reify
       IDependency
@@ -58,7 +66,7 @@
        (map (fn [[k v]] [k (f v)]))
        (into {})))
 
-(defn all-dependencies
+(defn dependency-map
   [global-cells cell-def callbacks]
   (->> (with-reader-tags
          (mapvals (constantly read-bind-tag) default-tag-parsers)
@@ -66,33 +74,71 @@
          (reader/read-string cell-def))
        (mapvals (comp flatten dependencies))))
 
+(defn has? [xs x]
+  (some? (not-empty (filter #{x} xs))))
+
 (defn compilation-order
-  [dependencies]
-  (let [dep-graph (reduce (fn [graph [k deps]]
-                            (reduce (fn [graph dep]
-                                      (dependency/depend graph k dep))
-                                    graph
-                                    deps))
-                          (dependency/graph)
-                          dependencies)]
-    (dependency/topo-sort dep-graph)))
+  [dependency-map]
+  (try
+    (let [dep-graph (reduce (fn [graph [k deps]]
+                              (reduce (fn [graph dep]
+                                        (dependency/depend graph k dep))
+                                      graph
+                                      deps))
+                            (dependency/graph)
+                            dependency-map)]
+      (as-> (dependency/topo-sort dep-graph) $
+            (reduce (fn [deps cell-key]
+                      (if-not (has? deps cell-key)
+                        (conj deps cell-key)
+                        deps))
+                    $
+                    (keys dependency-map))))
+    (catch js/Error e
+      (throw (js/Error. (str "Error compiling cells: " (.-message e)))))))
 
 (comment
-  (all-dependencies {} "{:text #= :global}" {})
-  (all-dependencies {} "{:text #= :global :reaction #= (query #= :text #= :something)}" {'query #()})
+  (dependency-map {} "{:text #= :global}" {})
+  (dependency-map {} "{:text #= :global :reaction #= (query #= :text #= :something)}" {'query #()})
 
   (compilation-order
-    (all-dependencies {} "{:text #= :global :reaction #= (query #= :text #= :something)}" {'query #()})))
+    (dependency-map {} "{:text #= :global :reaction #= (query #= :text #= :something)}" {'query #()}))
+  (compilation-order
+    (dependency-map {} "{:user {:name \"John Smith\"} :other #= :this :this #= :other}" {})))
+
+(defn compile-cell
+  [cells [cell-key cell-value]]
+  (assoc cells cell-key
+               (make-cell (bindings/resolve cells cell-value))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
 
+(defn dbg [str x]
+  ;(println str (pr-str x))
+  x)
+
 (defn compile
   [global-cells cell-def callbacks]
-  (->> (with-reader-tags
-         default-tag-parsers [global-cells callbacks]
-         (reader/read-string cell-def))
-       (map
-         (fn [[name value]]
-           [name (make-cell value)]))
-       (into {})))
+
+  ; TODO: reduce over all-dependencies starting with global-cells.
+  (let [local-cells (with-reader-tags
+                      default-tag-parsers [callbacks]
+                      (reader/read-string cell-def))]
+    (->> (dependency-map global-cells cell-def callbacks)
+         compilation-order
+         (dbg "Dependency order:")
+         (map (fn [cell-key]
+                (when-let [cell-value (local-cells cell-key)]
+                  [cell-key cell-value])))
+         (remove nil?)
+         (reduce compile-cell global-cells))))
+
+(comment
+  (let [cells (compile {:global (atom "Hello")}
+                       "{:text #= :global :upcase #= (upcase #= :text)}" {'upcase (fn [_ data] (str/upper-case @data))})]
+    (prn @(:text cells))
+    (prn @(:upcase cells))
+    (reset! (:global cells) "Good")
+    (prn @(:text cells))
+    (prn @(:upcase cells))))

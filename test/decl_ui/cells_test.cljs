@@ -25,7 +25,7 @@
       (are [binding result] (= result @(binding cells))
                             :text "whatever"
                             :upcased "WHATEVER")))
-  #_(testing "Binding to a local cell"
+  (testing "Binding to a local cell"
     (let [cells (compile {}
                          "{:text #= :local :local \"whatever\"}"
                          {})]
