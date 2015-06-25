@@ -29,7 +29,7 @@
                          (-resolve [_ cells]
                            (let [callback (callbacks/compile cells callbacks form)]
                              (assert (some? callback) (str "Cannot bind to " form))
-                             (when callback (reaction (callback)))))))]
+                             (reaction (callback))))))]
     (assert (some? result) (str "Cannot bind to " form))
     result))
 
