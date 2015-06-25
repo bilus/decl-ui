@@ -29,6 +29,8 @@ your option) any later version.
 ## TBD
 
 - Fix the ev first argument to callbacks.
+- Fix error reporting.
+- Remove callbacks/compile dependency on cells.
 - Error for undefined global.
 - Error for undefined local.
 - Demo.
