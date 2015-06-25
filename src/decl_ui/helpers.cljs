@@ -19,5 +19,5 @@
   (js/alert "clicked!"))
 
 (defn ^:function ^:export count
-  [_ a]
-  (cljs.core/count @a))
+  [xs]
+  (cljs.core/count xs))

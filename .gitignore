@@ -16,3 +16,4 @@ out/
 .repl
 /resources/public/js/testable.js
 .DS_Store
+demos/hello_world/js/

@@ -32,7 +32,7 @@
   (assoc cells cell-key (-make-cell (bindings/resolve cells cell-value))))
 
 (defn dbg [str x]
-  (println str (pr-str x))
+  ;(println str (pr-str x))
   x)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

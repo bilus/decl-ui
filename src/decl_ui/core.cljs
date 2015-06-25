@@ -4,7 +4,7 @@
             [decl-ui.helpers]
             [decl-ui.cells :as cells]))
 
-(declare compile->hiccup compile-ui)
+(declare load-ui)
 
 (def ui-root (atom (fn [] [:div "Empty"])))
 
@@ -14,15 +14,12 @@
   []
   [@ui-root])
 
-(defn load-ui [globals cell-def ui-def helpers functions callbacks]
-  (reset! ui-root (compile-ui globals cell-def ui-def helpers functions callbacks)))
-
 (defn main []
   (render-component
     [hello-view]
     (. js/document (getElementById "app")))
 
-  (load-ui {:title (atom "This is title") :results (atom ["result1" "result2"])}
+  (load-ui ui-root {:title (atom "This is title") :results (atom ["result1" "result2"])}
            "{:text \"Change view\"
              :pressed 0
              :text-length #= (count #= :text)
@@ -50,7 +47,6 @@
 
 (defn compile-ui
   [globals cell-def ui-def helpers functions callbacks]
-  (prn functions)
   (let [cells (cells/compile globals cell-def functions)]
     (fn [] (compile/compile-ui cells ui-def helpers callbacks))))
 
@@ -59,11 +55,16 @@
   (let [cells (cells/compile globals cell-def functions)]
     (compile/compile-ui cells ui-def helpers callbacks)))
 
+(defn load-ui [ui-root globals cell-def ui-def helpers functions callbacks]
+  (reset! ui-root (compile-ui globals cell-def ui-def helpers functions callbacks)))
+
+
 (comment
   (compile/function-map 'decl-ui.helpers :e)
   (prn (compile->hiccup {} "{:user {:name \"John Smith\"}}"
                         "[:div#user-name #= [:user :name]]"
                         {} {} {}))
-  (load-ui {} "{:user {:name \"John Smiteeeeh\"}}"
+  (load-ui ui-root
+           {} "{:user {:name \"John Smiteeeeh\"}}"
            "[:div#user-name \"eue\"]"
            {} {} {}))

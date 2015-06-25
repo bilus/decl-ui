@@ -30,6 +30,14 @@
                                                  :asset-path "js/out"
                                                  :output-to  "resources/public/js/main.js"
                                                  :output-dir "resources/public/js/out"}}
+
+                                 {:id           "hello-world"
+                                  :source-paths ["src/" "demos/hello_world/src"]
+                                  :figwheel     true
+                                  :compiler     {:main       "demos.hello-world"
+                                                 :asset-path "js/out"
+                                                 :output-to  "demos/hello_world/js/main.js"
+                                                 :output-dir "demos/hello_world/js/out"}}
                                  {:id           "test"
                                   :source-paths ["src" "test"]
                                   ;:dependencies [lein-doo "0.1.1-SNAPSHOT"]

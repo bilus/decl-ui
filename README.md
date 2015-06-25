@@ -28,7 +28,7 @@ your option) any later version.
 
 ## TBD
 
-- Extract core parts to demos/hello_world. Do not use main.
+- Remove app code from core.
 - Demo.
 - Rename callbacks to actions.
 - Extract common functionality in callbacks/compile and functions/compile into a macro.
@@ -37,6 +37,13 @@ your option) any later version.
 - Error for undefined local.
 
 - Publish a short article.
+
+- Parse HTML? # https://github.com/weavejester/hiccup/wiki/Converting-html-to-hiccup
+  - Static html.
+  - Mustache {{user.name}} => #= [:user :name]
+  - on-click="ui/click-handler"
+  - on-click="(ui/click-handler {{user.name}})"
+  - on-click="ui.click-handler('a message')" -> via eval.
 
 - Warn about undefined helpers (with namespace only).
 - Separate callbacks and functions? Pass values to functions? Or fix first argument to callbacks.
