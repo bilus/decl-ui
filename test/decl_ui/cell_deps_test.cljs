@@ -4,7 +4,7 @@
             [cljs.test :refer-macros [deftest is are testing run-tests async]]))
 
 (deftest dependency-map-test
-  (are [dmap cdef cbs] (= dmap (dependency-map {} cdef cbs))
+  (are [dmap cdef cbs] (= dmap (dependency-map cdef cbs))
     {} "{}" {}
     {:text []} "{:text \"Hello\"}" {}
     {:text [:global]} "{:text #= :global}" {}
@@ -12,7 +12,7 @@
     {:reaction [:text :something], :text [:global]} "{:text #= :global :reaction #= (query :not-binding #= :text #= :something)}" {'query #()}))
 
 (deftest compilation-order-test
-  (are [corder cdef cbs] (= corder (compilation-order (dependency-map {} cdef cbs)))
+  (are [corder cdef cbs] (= corder (compilation-order (dependency-map cdef cbs)))
     [] "{}" {}
     [:text] "{:text \"Hello\"}" {}
     [:global :text] "{:text #= :global}" {}

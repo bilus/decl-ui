@@ -27,9 +27,9 @@
                  :else (reify
                          IUnresolvedBinding
                          (-resolve [_ cells]
-                           (let [callback (callbacks/compile cells callbacks form)]
+                           (let [callback (callbacks/compile callbacks form)]
                              (assert (some? callback) (str "Cannot bind to " form))
-                             (reaction (callback))))))]
+                             (reaction ((callback cells) nil))))))]
     (assert (some? result) (str "Cannot bind to " form))
     result))
 

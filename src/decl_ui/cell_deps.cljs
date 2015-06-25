@@ -25,16 +25,17 @@
        (map dependencies)))
 
 (defn read-bind-tag                                         ;; TODO: Logic duplicated in decl-ui.compile
-  [cells callbacks form]
+  [callbacks form]
   (let [dependencies (cond
                        (keyword? form) [form]
                        (and (vector? form) (every? keyword? form)) [(first form)]
-                       :else (when-let [callback (callbacks/compile cells callbacks form)]
-                               (callback)))]
+                       :else (when-let [callback (callbacks/compile callbacks form)]
+                               (let [gen-deps (callback)]
+                                 (gen-deps))))]
     (reify
       IDependency
       (dependencies [_]
-        dependencies))))
+        (or dependencies [])))))
 
 (defn mapvals
   [f xs]
@@ -54,13 +55,12 @@
 
    Arguments:
 
-   - parent-cells - a map of cells defined in parent scope
    - cell-def - cell definition string
    - callbacks - callback map."
-  [parent-cells cell-def callbacks]
+  [cell-def callbacks]
   (->> (with-reader-tags
          (mapvals (constantly read-bind-tag) default-tag-parsers)
-         [parent-cells (mapvals (constantly gen-deps) callbacks)]
+         [(mapvals (constantly gen-deps) callbacks)]
          (reader/read-string cell-def))
        (mapvals (comp flatten dependencies))))
 

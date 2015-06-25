@@ -50,7 +50,7 @@
   (let [local-cells (with-reader-tags
                       default-tag-parsers [callbacks]
                       (reader/read-string cell-def))]
-    (->> (cell-deps/dependency-map parent-cells cell-def callbacks)
+    (->> (cell-deps/dependency-map cell-def callbacks)
          cell-deps/compilation-order
          (dbg "Dependency order:")
          (map (fn [cell-key]

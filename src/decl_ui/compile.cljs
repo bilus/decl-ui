@@ -30,7 +30,9 @@
   [cells callbacks attrs]
   (->> attrs
        (map (fn [[k v]]
-              [k (callbacks/compile cells callbacks v)]))
+              [k (if-let [callback (callbacks/compile callbacks v)]
+                   (callback cells)
+                   v)]))
        (into {})))
 
 (defrecord CompileContext [cells helpers callbacks])
