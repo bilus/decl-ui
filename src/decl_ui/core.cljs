@@ -4,33 +4,30 @@
             [decl-ui.helpers]
             [decl-ui.cells :as cells]))
 
-(declare compile-ui compile->hiccup)
+(declare compile->hiccup)
 
-(def ui-root (atom [:div "Empty"]))
+(def ui-root (atom (fn [] [:div "Empty"])))
 
 (enable-console-print!)
 
 (defn hello-view
   []
-  @ui-root)
+  [@ui-root])
 
 (defn load-ui [globals cell-def ui-def helpers callbacks]
-  (reset! ui-root (compile-ui globals
-                              cell-def
-                              ui-def
-                              helpers
-                              callbacks)))
+  (let [cells (cells/compile globals cell-def callbacks)]
+    (reset! ui-root (fn [] (compile/compile-ui cells ui-def helpers callbacks)))))
 
 (defn main []
   (render-component
     [hello-view]
     (. js/document (getElementById "app")))
 
-  #_(load-ui {:title (atom "This is title") :results (atom ["result1" "result2"])} "{:text \"Click me\"
+  (load-ui {:title (atom "This is title") :results (atom ["result1" "result2"])} "{:text \"Change view\"
            :pressed 0
            :query-result #= (ui/query)
            :x #bind :title}"
-           "[:div [:button#click {:on-click ui/handle-click} #bind :text]
+           "[:div [:button#click {:on-click change-view} #bind :text]
               [:div \"Change text\"]
               [:ui/input #= :text]
               [:ui/special-div]
@@ -41,12 +38,16 @@
               \"Query result:\"
               [:div #= :query-result]]"
            (compile/helper-map 'decl-ui.helpers :ui)
-           (compile/callback-map 'decl-ui.helpers :ui))
+           (merge (compile/callback-map 'decl-ui.helpers :ui)
+                  {'change-view (fn [_]
+                                  (load-ui {} "{:user {:name \"John Smiteeeeh\"}}"
+                                           "[:div#user-name \"eue\"]"
+                                           {} {}))}))
 
-  (load-ui {} "{:user {:name \"John Smith\"}}"
-            "[:div#user-name #= [:user :name]]"
-            {} {})
-  (get (compile/callback-map 'decl-ui.helpers :ui) 'ui/handle-click))
+  ;(load-ui {} "{:user {:name \"John Smith\"}}"
+  ;         "[:div#user-name #= [:user :name]]"
+  ;         {} {})
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
@@ -56,14 +57,10 @@
   (let [cells (cells/compile globals cell-def callbacks)]
     (compile/compile-ui cells ui-def helpers callbacks)))
 
-(defn compile-ui
-  [globals cell-def ui-def helpers callbacks]
-  (fn []
-    (let [cells (cells/compile globals cell-def callbacks)]
-      (fn []
-        (compile/compile-ui cells ui-def helpers callbacks)))))
-
 (comment
   (prn (compile->hiccup {} "{:user {:name \"John Smith\"}}"
                         "[:div#user-name #= [:user :name]]"
-                        {} {})))
+                        {} {}))
+  (load-ui {} "{:user {:name \"John Smiteeeeh\"}}"
+           "[:div#user-name \"eue\"]"
+           {} {}))

@@ -28,6 +28,7 @@ your option) any later version.
 
 ## TBD
 
+- Extract core parts to demos/hello_world. Do not use main.
 - Fix the ev first argument to callbacks.
 - Fix error reporting.
 - Remove callbacks/compile dependency on cells.
