@@ -1,4 +1,5 @@
-(ns decl-ui.helpers)
+(ns decl-ui.helpers
+  (:refer-clojure :exclude [count]))
 
 (defn ^:helper ^:export special-div
   [_el]
@@ -17,6 +18,6 @@
   []
   (js/alert "clicked!"))
 
-(defn ^:callback ^:export query
-  []
-  "Query result")
+(defn ^:function ^:export count
+  [_ a]
+  (cljs.core/count @a))

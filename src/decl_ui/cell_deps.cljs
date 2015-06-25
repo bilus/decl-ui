@@ -1,5 +1,5 @@
 (ns decl-ui.cell-deps
-  (:require [decl-ui.callbacks :as callbacks]
+  (:require [decl-ui.functions :as functions]
             [decl-ui.reader-tags :refer [default-tag-parsers]]
             [com.stuartsierra.dependency :as dependency]
             [cljs.reader :as reader])
@@ -25,12 +25,12 @@
        (map dependencies)))
 
 (defn read-bind-tag                                         ;; TODO: Logic duplicated in decl-ui.compile
-  [callbacks form]
+  [functions form]
   (let [dependencies (cond
                        (keyword? form) [form]
                        (and (vector? form) (every? keyword? form)) [(first form)]
-                       :else (when-let [callback (callbacks/compile callbacks form)]
-                               (let [gen-deps (callback)]
+                       :else (when-let [make-fun (functions/compile functions form)]
+                               (let [gen-deps (make-fun)]
                                  (gen-deps))))]
     (reify
       IDependency
@@ -56,11 +56,11 @@
    Arguments:
 
    - cell-def - cell definition string
-   - callbacks - callback map."
-  [cell-def callbacks]
+   - functions - function map."
+  [cell-def functions]
   (->> (with-reader-tags
          (mapvals (constantly read-bind-tag) default-tag-parsers)
-         [(mapvals (constantly gen-deps) callbacks)]
+         [(mapvals (constantly gen-deps) functions)]
          (reader/read-string cell-def))
        (mapvals (comp flatten dependencies))))
 

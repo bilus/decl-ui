@@ -32,7 +32,7 @@
   (assoc cells cell-key (-make-cell (bindings/resolve cells cell-value))))
 
 (defn dbg [str x]
-  #_(println str (pr-str x))
+  (println str (pr-str x))
   x)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -45,12 +45,13 @@
 
    - parent-cells - a map of cells defined in parent scope
    - cell-def - cell definition string
-   - callbacks - callback map."
-  [parent-cells cell-def callbacks]
+   - functions - function map."
+  [parent-cells cell-def functions]
   (let [local-cells (with-reader-tags
-                      default-tag-parsers [callbacks]
+                      default-tag-parsers [functions]
                       (reader/read-string cell-def))]
-    (->> (cell-deps/dependency-map cell-def callbacks)
+    (->> (cell-deps/dependency-map cell-def functions)
+         (dbg "Dep map:")
          cell-deps/compilation-order
          (dbg "Dependency order:")
          (map (fn [cell-key]

@@ -9,24 +9,24 @@
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn install!
-  ([globals cells-def ui-def helpers callbacks]
-   (install! "app" globals cells-def ui-def helpers callbacks))
-  ([container-id globals cells-def ui-def helpers callbacks]
+  ([globals cells-def ui-def helpers functions callbacks]
+   (install! "app" globals cells-def ui-def helpers functions callbacks))
+  ([container-id globals cells-def ui-def helpers functions callbacks]
    (render-component
-     [(compile-ui globals cells-def ui-def helpers callbacks)]
+     [(compile-ui globals cells-def ui-def helpers functions callbacks)]
      (container! container-id))))
 
 (deftest test-compile-ui
   (testing "Markup generation"
     (testing "of static markup"
-      (install! {} "{:text \"Hello\"}" "[:div#text \"Hello\"]" {} {})
+      (install! {} "{:text \"Hello\"}" "[:div#text \"Hello\"]" {} {} {})
       (is (= "Hello" (text (sel1 "#text"))))))
   (testing "Binding"
     (testing "cells to render inside tags"
-      (install! {} "{:text \"Hello\"}" "[:div#text #= :text]" {} {})
+      (install! {} "{:text \"Hello\"}" "[:div#text #= :text]" {} {} {})
       (is (= "Hello" (text (sel1 "#text")))))
     (testing "cells in nested markup"
-      (install! {} "{:text \"Hello\"}" "[:div [:div#text #= :text]]" {} {})
+      (install! {} "{:text \"Hello\"}" "[:div [:div#text #= :text]]" {} {} {})
       (is (= "Hello" (text (sel1 "#text")))))
     (testing "cells for two-way synchronization"
       (install! {} "{:text \"Hello\"}"
@@ -36,6 +36,7 @@
                 {:ui/button (fn [[_ id data]]
                               [:button {:id       id
                                         :on-click #(reset! data "Bye")}])}
+                {}
                 {})
       (is (sel1 "#btn"))
       (click! (sel1 "#btn"))
@@ -45,12 +46,12 @@
     (testing "to nested data"
       (install! {} "{:user {:name \"John Smith\"}}"
                 "[:div#user-name #= [:user :name]]"
-                {} {})
+                {} {} {})
       (is (= "John Smith" (text (sel1 "#user-name")))))
     (testing "to flat data using key sequence"
       (install! {} "{:text \"Hello world\"}"
                 "[:div#result #= [:text]]"
-                {} {})
+                {} {} {})
       (is (= "Hello world" (text (sel1 "#result"))))))
   (testing "Callback"
     (testing "invoked with no arguments"
@@ -59,6 +60,7 @@
                   "[:div
                    [:button {:id \"btn\" :on-click ui/handle-click}]
                    [:div#result #= :text]]"
+                  {}
                   {}
                   {'ui/handle-click (fn [_]
                                       (reset! clicked true)
@@ -74,6 +76,7 @@
                    [:button {:id \"btn\" :on-click (ui/handle-click 666)}]
                    [:div#result #= :text]]"
                   {}
+                  {}
                   {'ui/handle-click (fn [_ value]
                                       (reset! received-value value)
                                       nil)})                ; Prevent warning.
@@ -87,6 +90,7 @@
                   "[:div
                    [:button {:id \"btn\" :on-click (ui/handle-click #= :text)}]
                    [:div#result #= :text]]"
+                  {}
                   {}
                   {'ui/handle-click (fn [_ text]
                                       (reset! received-value @text)
@@ -102,6 +106,7 @@
                  [:div#user-name #= [:user :name]]
                  [:div#text #= [:text]]]"
                 {}
+                {}
                 {'ui/handle-click (fn [_ user-name text]
                                     (reset! user-name "Tom")
                                     (reset! text "Bye!")
@@ -116,7 +121,8 @@
       (install! {} "{:text #= ui/query}"
                 "[:div#result #= :text]"
                 {}
-                {'ui/query (fn [] "Hello world")})
+                {'ui/query (fn [] "Hello world")}
+                {})
       (is (= "Hello world" (text (sel1 "#result")))))
     (testing "to callback binding to global cells"
       (install! {:text (atom "Hello world")}
@@ -124,7 +130,8 @@
                 "[:div#result #= :upcased-text]"
                 {}
                 {'ui/upcase (fn [_ text]
-                              (str/upper-case @text))})
+                              (str/upper-case @text))}
+                {})
       (is (= "HELLO WORLD" (text (sel1 "#result")))))
     (testing "to callback binding to local cells"
       (install! {}
@@ -132,7 +139,8 @@
                 "[:div#result #= :upcased-text]"
                 {}
                 {'ui/upcase (fn [_ text]
-                              (str/upper-case @text))})
+                              (str/upper-case @text))}
+                {})
       (is (= "HELLO WORLD" (text (sel1 "#result")))))
     (testing "to callback should automatically recalculate"
       (install! {:text (atom "Hello world")}
@@ -141,9 +149,9 @@
                   [:button {:id \"btn\" :on-click (ui/change-text #= [:text])}]
                   [:div#text #= :upcased-text]]"
                 {}
-                {'ui/upcase      (fn [_ text]
-                                   (str/upper-case @text))
-                 'ui/change-text (fn [_ text]
+                {'ui/upcase (fn [_ text]
+                              (str/upper-case @text))}
+                {'ui/change-text (fn [_ text]
                                    (reset! text "Bye!")
                                    nil)})
       (click! (sel1 "#btn"))
