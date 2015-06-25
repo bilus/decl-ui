@@ -70,6 +70,14 @@
 ;;; Public
 
 (defn compile-ui
+  "Compiles a string containing ui definition into hiccup-like data structure compatible with reagent.
+
+   Arguments:
+
+   - cells - cell map
+   - ui-def - string containing a hiccup-like ui definition
+   - helpers - tag helper map
+   - callbacks - callback map"
   [cells ui-def helpers callbacks]
   (with-reader-tags
     default-tag-parsers [callbacks]

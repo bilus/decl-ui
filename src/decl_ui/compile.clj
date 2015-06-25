@@ -5,6 +5,16 @@
 ;;; Public
 
 (defmacro helper-map [[_quote ns] prefix]
+  "Takes a namespace and returns a map of keywords to tag helper functions.
+
+   Arguments:
+
+   - ns - the namespace
+   - prefix - prefix to use on generated keywords.
+
+   Example:
+
+       (helper-map 'ui-helpers :ui) ;; => {:ui/contact-form ui-helpers/contact-form}"
   `(into {}
          (list ~@(->>
                    (ana-api/ns-interns ns)
@@ -14,6 +24,16 @@
                           `[~(keyword (name prefix) (name k#)) ~(symbol (name ns) (name k#))]))))))
 
 (defmacro callback-map [[_quote ns] prefix]
+  "Takes a namespace and returns a map of symbols to callback functions.
+
+   Arguments:
+
+   - ns - the namespace
+   - prefix - prefix to use on generated symbols.
+
+   Example:
+
+       (helper-map 'ui-callbacks :ui) ;; => {'ui/save-user! ui-callbacks/save-user!}"
   `(into {}
          (list ~@(->>
                    (ana-api/ns-interns ns)

@@ -4,7 +4,11 @@
             [reagent.ratom :refer [cursor]])
   (:require-macros [reagent.ratom :refer [reaction]]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Public
+
 (defn read-bind-tag
+  "Bind tag literal reader. Creates a binding that can be resolved later after cells are defined."
   [callbacks form]
   (let [result (cond
                  (keyword? form) (reify
@@ -29,5 +33,7 @@
     (assert (some? result) (str "Cannot bind to " form))
     result))
 
-(def default-tag-parsers {"bind" read-bind-tag
-                          "="    read-bind-tag})
+(def default-tag-parsers
+  "Tag literal readers used in actual compilation of ui and cell definitions."
+  {"bind" read-bind-tag
+   "="    read-bind-tag})
