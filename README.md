@@ -1,6 +1,6 @@
 # decl-ui
 
-A Clojure library designed to ... well, that part is up to you.
+Declarative user inferface based on Reagent.
 
 ## Running app
 
