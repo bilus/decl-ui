@@ -28,15 +28,13 @@ your option) any later version.
 
 ## TBD
 
-- Fix the ev first argument to callbacks.
-  - Automatically deref atoms passed to functions.
-  - Rename callbacks to actions.
-  - Extract common functionality in callbacks/compile and functions/compile into a macro.
+- Extract core parts to demos/hello_world. Do not use main.
+- Demo.
+- Rename callbacks to actions.
+- Extract common functionality in callbacks/compile and functions/compile into a macro.
 - Fix error reporting.
 - Error for undefined global.
 - Error for undefined local.
-- Extract core parts to demos/hello_world. Do not use main.
-- Demo.
 
 - Publish a short article.
 
